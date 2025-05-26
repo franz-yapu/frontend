@@ -1,0 +1,59 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <ng-container *ngFor="let field of fields">
+      <div *ngIf="field.type === 'title'">
+        <h3 [ngClass]="field.style">{{ field.text  }}</h3>
+      </div>
+  
+      <div *ngIf="field.type === 'column'" class="flex gap-4">
+        <ng-container *ngFor="let column of field.columns">
+          <div class="flex-1">
+            <ng-container *ngFor="let f of column.fields">
+              <ng-container *ngIf="isFieldVisible(f)">
+                <label>{{ f.label }}</label>
+  
+                <!-- Text / Number Input -->
+                <input
+                  *ngIf="['text', 'number'].includes(f.type)"
+                  [type]="f.type"
+                  [formControlName]="f.key"
+                  [readonly]="f.readonly"
+                  class="form-control"
+                />
+                
+                <!-- Select -->
+                <select *ngIf="f.type === 'select'" [formControlName]="f.key" class="form-control">
+                  <option *ngFor="let opt of f.options" [value]="opt.code">{{ opt.label }}</option>
+                </select>
+  
+                <!-- Radio -->
+                <div *ngIf="f.type === 'radio'" class="form-radio-group">
+                  <label *ngFor="let opt of f.options">
+                    <input type="radio" [value]="opt.code" [formControlName]="f.key" /> {{ opt.label  }}
+                  </label>
+                </div>
+  
+                <!-- DateTime -->
+                <input *ngIf="f.type === 'datetime'" type="date" [formControlName]="f.key" class="form-control" />
+  
+                <!-- Validation Errors -->
+                <div class="error" *ngIf="getControl(f.key)?.touched && getControl(f.key)?.invalid">
+                  <div *ngIf="getControl(f.key)?.errors?.['required']">Este campo es obligatorio.</div>
+                  <div *ngIf="getControl(f.key)?.errors?.['email']">Formato de correo inválido.</div>
+                  <div *ngIf="getControl(f.key)?.errors?.['pattern']">Formato inválido.</div>
+                  <div *ngIf="getControl(f.key)?.errors?.['minlength']">
+                    Mínimo {{ f.validators?.minLength }} caracteres.
+                  </div>
+                  <div *ngIf="getControl(f.key)?.errors?.['maxlength']">
+                    Máximo {{ f.validators?.maxLength }} caracteres.
+                  </div>
+                </div>
+              </ng-container>
+            </ng-container>
+          </div>
+        </ng-container>
+      </div>
+    </ng-container>
+  
+    <button type="submit">Enviar</button>
+  </form>
+  
