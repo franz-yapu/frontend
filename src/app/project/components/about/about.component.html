@@ -1,0 +1,35 @@
+<div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">Colegio Pedro Domingo Murillo</h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Institución educativa comprometida con la excelencia académica y la formación integral de nuestros
+            estudiantes
+        </p>
+        <div class="w-24 h-1 bg-blue-600 mx-auto mt-6 rounded-full"></div>
+    </div>
+
+    <!-- Información Principal -->
+    <div class="max-w-7xl mx-auto">
+        <!-- Grid de Información -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <div *ngFor="let info of schoolInfo"
+                class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 hover:transform hover:-translate-y-1">
+                <div class="flex items-center mb-4">
+                    <span [class]="info.color"  class="material-symbols-outlined">
+                       {{info.icon}}
+                    </span>
+                   <!--  <span class="material-icons-round text-2xl p-2 rounded-lg mr-3" [class]="info.color">
+                        {{info.icon}}
+                    </span> -->
+                    <h3 class="text-xl ml-2 font-semibold text-gray-800">{{info.title}}</h3>
+                </div>
+                <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{info.content}}</p>
+            </div>
+        </div>
+
+        <!-- Staff Directivo -->
+
+      
+    </div>
+</div>

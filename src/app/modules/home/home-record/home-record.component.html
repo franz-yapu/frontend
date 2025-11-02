@@ -1,0 +1,163 @@
+<div class="mx-auto p-4 sm:p-6">
+  <app-bread-crumb [breadcrumbItems]="breadcrumbItems"></app-bread-crumb>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+  <div class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-900"></div>
+  </div>
+  }
+
+  <!-- Error State -->
+  @if (!isLoading && !student) {
+  <div class="text-center py-12 bg-red-50 rounded-lg">
+    <span class="material-symbols-outlined text-red-400 text-4xl mb-3">error</span>
+    <h3 class="text-lg font-medium text-red-800">Error al cargar el estudiante</h3>
+    <p class="text-red-600 mt-2">No se pudo cargar la información del estudiante.</p>
+  <!--   <button (click)="navigateBack()" class="mt-4 px-4 py-2 bg-red-900 text-white rounded-md hover:bg-red-800">
+      Volver a la lista
+    </button> -->
+  </div>
+  }
+
+  <!-- Student Data -->
+  @if (!isLoading && student) {
+  <!-- Header del estudiante -->
+ 
+
+ 
+
+  <!-- Tabla de materias -->
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-800">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Materia</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">1er Trimestre</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">2do Trimestre</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">3er Trimestre</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Nota Final</th>
+         <!--  <th class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Acciones</th> -->
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        @for (subject of subjects; track subject.id) {
+          @let record = getStudentRecord(subject.id, selectedSemester);
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div>
+                <div class="text-sm font-medium text-gray-900">{{subject.name}}</div>
+                <div class="text-sm text-gray-500">{{subject.description}}</div>
+              </div>
+            </td>
+            
+            <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+              <span [class]="getGradeColor(record?.grade1)">
+                {{record?.grade1 || '-'}}
+              </span>
+            </td>
+            
+            <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+              <span [class]="getGradeColor(record?.grade2)">
+                {{record?.grade2 || '-'}}
+              </span>
+            </td>
+            
+            <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+              <span [class]="getGradeColor(record?.grade3)">
+                {{record?.grade3 || '-'}}
+              </span>
+            </td>
+            
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <span class="text-lg font-semibold" [class]="getGradeColor(record?.finalGrade)">
+                {{record?.finalGrade || '-'}}
+              </span>
+            </td>
+            
+          
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+
+  <!-- Modal para editar notas -->
+  @if (editingSubject && student) {
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+      <div class="p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+          Editar notas - {{editingSubject.name}}
+        </h3>
+        <p class="text-sm text-gray-600 mb-4">
+          {{student.firstName}} {{student.lastName}} - {{selectedSemester}}° Trimestre
+        </p>
+
+        <form [formGroup]="editForm">
+          <div class="space-y-4">
+            <!-- 1er Trimestre -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">1er Trimestre</label>
+              <input type="number" formControlName="grade1" min="0" max="100" step="0.1"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-900 focus:border-red-900"
+                placeholder="Nota del 1er Trimestre">
+              @if (editForm.get('grade1')?.invalid && editForm.get('grade1')?.touched) {
+                <p class="text-sm text-red-600 mt-1">
+                  La nota debe estar entre 0 y 100
+                </p>
+              }
+            </div>
+
+            <!-- 2do Trimestre -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">2do Trimestre</label>
+              <input type="number" formControlName="grade2" min="0" max="100" step="0.1"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-900 focus:border-red-900"
+                placeholder="Nota del 2do Trimestre">
+              @if (editForm.get('grade2')?.invalid && editForm.get('grade2')?.touched) {
+                <p class="text-sm text-red-600 mt-1">
+                  La nota debe estar entre 0 y 100
+                </p>
+              }
+            </div>
+
+            <!-- 3er Trimestre -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">3er Trimestre</label>
+              <input type="number" formControlName="grade3" min="0" max="100" step="0.1"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-900 focus:border-red-900"
+                placeholder="Nota del 3er Trimestre">
+              @if (editForm.get('grade3')?.invalid && editForm.get('grade3')?.touched) {
+                <p class="text-sm text-red-600 mt-1">
+                  La nota debe estar entre 0 y 100
+                </p>
+              }
+            </div>
+
+            <!-- Nota Final (calculada) -->
+            <div class="pt-2 border-t border-gray-200">
+              <p class="text-sm font-medium text-gray-700">Nota Final Calculada:</p>
+              <p class="text-lg" [class]="getGradeColor(calculateFinalGrade())">
+                {{calculateFinalGrade() !== null ? calculateFinalGrade() : 'Ingrese al menos una nota'}}
+              </p>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-lg">
+        <button type="button" (click)="saveGrades()"
+          class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-900 text-base font-medium text-white hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-900 sm:ml-3 sm:w-auto sm:text-sm">
+          Guardar
+        </button>
+        <button type="button" (click)="closeModal()"
+          class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-900 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

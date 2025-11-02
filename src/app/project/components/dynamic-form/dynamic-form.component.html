@@ -1,59 +1,222 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <ng-container *ngFor="let field of fields">
-      <div *ngIf="field.type === 'title'">
-        <h3 [ngClass]="field.style">{{ field.text  }}</h3>
-      </div>
-  
-      <div *ngIf="field.type === 'column'" class="flex gap-4">
-        <ng-container *ngFor="let column of field.columns">
-          <div class="flex-1">
-            <ng-container *ngFor="let f of column.fields">
-              <ng-container *ngIf="isFieldVisible(f)">
-                <label>{{ f.label }}</label>
-  
-                <!-- Text / Number Input -->
-                <input
-                  *ngIf="['text', 'number'].includes(f.type)"
-                  [type]="f.type"
-                  [formControlName]="f.key"
-                  [readonly]="f.readonly"
-                  class="form-control"
-                />
-                
-                <!-- Select -->
-                <select *ngIf="f.type === 'select'" [formControlName]="f.key" class="form-control">
-                  <option *ngFor="let opt of f.options" [value]="opt.code">{{ opt.label }}</option>
-                </select>
-  
-                <!-- Radio -->
-                <div *ngIf="f.type === 'radio'" class="form-radio-group">
-                  <label *ngFor="let opt of f.options">
-                    <input type="radio" [value]="opt.code" [formControlName]="f.key" /> {{ opt.label  }}
-                  </label>
+<div class=" bg-gray-50 ">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()"
+    class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+    <!-- Header del formulario -->
+    <div class="bg-red-900  py-1">
+
+    </div>
+
+    <!-- Cuerpo del formulario -->
+    <div class="p-2 space-y-8">
+      @for (field of fields; track $index + (field.key || 'title')) {
+      @if (field.type === 'title') {
+      <h3 class="text-xl font-semibold mb-4 text-gray-800 border-b border-gray-200 pb-2">{{ field.text }}</h3>
+      }
+
+      @if (field.type === 'column' && field.columns) {
+      <div [ngClass]="{
+            'grid grid-cols-1 gap-6': field.columns.length === 1,
+            'grid grid-cols-1 md:grid-cols-2 gap-6': field.columns.length > 1
+          }">
+        @for (column of field.columns; track column.id || $index) {
+        <div class="space-y-4">
+          @for (f of column.fields; track f.key || $index) {
+          @if (isFieldVisible(f)) {
+          <div class="flex flex-col">
+            <label class="text-gray-700 font-medium mb-1">
+              {{ f.label }}
+              @if (f.validators?.required) {
+              <span class="text-red-900">*</span>
+              }
+            </label>
+
+            <!-- Input (text, number, password, email) -->
+            @if (f.type && ['text', 'number', 'password', 'email'].includes(f.type)) {
+            <!-- Contenedor relativo para el input de password con ojito -->
+            @if (f.type === 'password') {
+            <div class="relative">
+              <input [type]="isPasswordVisible[f.key] ? 'text' : 'password'" [formControlName]="f.key"
+                [readonly]="f.readonly || false"
+                class="w-full px-4 py-1 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent transition duration-200" />
+              <!-- Botón del ojito -->
+              <button type="button" (click)="togglePasswordVisibility(f.key)"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-red-900 transition-colors duration-200">
+                @if (isPasswordVisible[f.key]) {
+                <!-- Icono de ojo tachado (visible) -->
+                <span class="material-symbols-outlined">
+                  visibility
+                </span>
+                } @else {
+                <!-- Icono de ojo abierto (oculto) -->
+                <span class="material-symbols-outlined">
+                  visibility_off
+                </span>
+                }
+              </button>
+            </div>
+            } @else {
+            <!-- Input normal para otros tipos -->
+            <input [type]="f.type" [formControlName]="f.key" [readonly]="f.readonly || false"
+              [placeholder]="f.type === 'email' ? 'ejemplo@dominio.com' : ''"
+              class="w-full px-4 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent transition duration-200" />
+            }
+            }
+
+            <!-- Mensajes de validación ESPECÍFICOS para password -->
+            @if (f.type === 'password') {
+            <div class="text-red-900 text-sm mt-1 font-medium"
+              *ngIf="getControl(f.key)?.touched && getControl(f.key)?.invalid">
+              <div *ngIf="getControl(f.key)?.errors?.['required']">Este campo es obligatorio.</div>
+              <div *ngIf="getControl(f.key)?.errors?.['minlength']">Mínimo {{ f.validators?.minLength }} caracteres.
+              </div>
+              <div *ngIf="getControl(f.key)?.errors?.['maxlength']">Máximo {{ f.validators?.maxLength }} caracteres.
+              </div>
+
+              <!-- Mensajes específicos de fortaleza de contraseña -->
+              <div *ngIf="getControl(f.key)?.errors?.['passwordStrength']">
+                <div *ngIf="getControl(f.key)?.errors?.['passwordStrength']?.['lowercase']">• Debe contener al menos una
+                  letra minúscula</div>
+                <div *ngIf="getControl(f.key)?.errors?.['passwordStrength']?.['uppercase']">• Debe contener al menos una
+                  letra mayúscula</div>
+                <div *ngIf="getControl(f.key)?.errors?.['passwordStrength']?.['number']">• Debe contener al menos un
+                  número</div>
+                <div *ngIf="getControl(f.key)?.errors?.['passwordStrength']?.['specialChar']">• Debe contener al menos
+                  un carácter especial ($!%*?&)</div>
+              </div>
+            </div>
+            }
+
+            <!-- Select -->
+            @if (f.type === 'select') {
+            <select [formControlName]="f.key"
+              class="w-full px-4 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 bg-white">
+              <option value="" disabled selected>Seleccione una opción</option>
+              @for (opt of f.options || []; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+            }
+
+            <!-- Radio -->
+            @if (f.type === 'radio') {
+            <div class="flex flex-col space-y-2">
+              @for (opt of f.options || []; track opt.value) {
+              <label class="inline-flex items-center">
+                <input type="radio" [value]="opt.value" [formControlName]="f.key"
+                  class="form-radio text-red-900 focus:ring-red-900" />
+                <span class="ml-2 text-gray-700">{{ opt.label }}</span>
+              </label>
+              }
+            </div>
+            }
+
+            <!-- Date -->
+            @if (f.type === 'datetime') {
+            <input type="date" [formControlName]="f.key"
+              class="w-full px-4 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900" />
+            }
+
+            <!-- File -->
+            @if (f.type === 'file') {
+            <div class="w-full">
+              <!-- Dropzone / Card input -->
+              <div
+                class="relative border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-red-500 transition duration-300 bg-gray-50"
+                (click)="triggerFileInput(f.key)">
+                <svg class="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v6m0 0l3-3m-3 3l-3-3M16 8a4 4 0 10-8 0v4" />
+                </svg>
+                <p class="text-gray-500 font-medium">Haga clic para cargar o arrastre y suelte</p>
+                <p class="text-xs text-gray-400 mt-1">SVG, PNG, JPG o JPEG (MÁX. 2MB)</p>
+              </div>
+
+              <input type="file" class="hidden" [attr.accept]="f.validators?.fileType?.join(',')"
+                (change)="onFileChange($event, f.key)" [attr.id]="'fileInput_' + f.key" />
+
+              <!-- Error de validación -->
+              <div *ngIf="fileErrors[f.key]" class="text-red-900 text-sm mt-1 font-medium">
+                {{ fileErrors[f.key] }}
+              </div>
+
+              <!-- Preview -->
+              @if(f.key && previewFiles[f.key]){
+              <div class="mt-3 rounded-md overflow-hidden border border-gray-200">
+                <img *ngIf="isImage(previewFiles[f.key] ?? '')" [src]="previewFiles[f.key]" alt="Preview"
+                  class="w-full object-contain max-h-60" />
+                <a *ngIf="f.key && previewFiles[f.key] && !isImage(previewFiles[f.key])" [href]="previewFiles[f.key]"
+                  target="_blank" class="block text-red-900 hover:text-red-800 underline text-center p-2">Ver
+                  documento</a>
+              </div>
+              }
+            </div>
+            }
+
+            <!-- Password Confirmation -->
+            @if (f.type === 'password' && f.key === 'password') {
+            <div class="flex flex-col mt-4">
+              <label class="text-gray-700 font-medium mb-1">
+                Repetir contraseña
+                <span class="text-red-900">*</span>
+              </label>
+              <!-- Contenedor para el campo de repetir contraseña con ojito -->
+              <div class="relative">
+                <input type="password" formControlName="repeatPassword"
+                  [type]="isPasswordVisible['repeatPassword'] ? 'text' : 'password'"
+                  class="w-full px-4 py-1 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-900 focus:border-transparent transition duration-200" />
+                <!-- Botón del ojito para repetir contraseña -->
+                <button type="button" (click)="togglePasswordVisibility('repeatPassword')"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-red-900 transition-colors duration-200">
+                 
+          @if (isPasswordVisible['repeatPassword']) {
+                <!-- Icono de ojo tachado (visible) -->
+                <span class="material-symbols-outlined">
+                  visibility
+                </span>
+                } @else {
+                <!-- Icono de ojo abierto (oculto) -->
+                <span class="material-symbols-outlined">
+                  visibility_off
+                </span>
+                }
+
+                </button>
+              </div>
+
+              <!-- Mensaje de error para repeatPassword -->
+              <div class="text-red-900 text-sm mt-1 font-medium"
+                *ngIf="getControl('repeatPassword')?.touched && getControl('repeatPassword')?.invalid">
+                <div *ngIf="getControl('repeatPassword')?.errors?.['required']">Este campo es obligatorio.</div>
+                <div *ngIf="getControl('repeatPassword')?.errors?.['passwordMismatch']">Las contraseñas no coinciden.
                 </div>
-  
-                <!-- DateTime -->
-                <input *ngIf="f.type === 'datetime'" type="date" [formControlName]="f.key" class="form-control" />
-  
-                <!-- Validation Errors -->
-                <div class="error" *ngIf="getControl(f.key)?.touched && getControl(f.key)?.invalid">
-                  <div *ngIf="getControl(f.key)?.errors?.['required']">Este campo es obligatorio.</div>
-                  <div *ngIf="getControl(f.key)?.errors?.['email']">Formato de correo inválido.</div>
-                  <div *ngIf="getControl(f.key)?.errors?.['pattern']">Formato inválido.</div>
-                  <div *ngIf="getControl(f.key)?.errors?.['minlength']">
-                    Mínimo {{ f.validators?.minLength }} caracteres.
-                  </div>
-                  <div *ngIf="getControl(f.key)?.errors?.['maxlength']">
-                    Máximo {{ f.validators?.maxLength }} caracteres.
-                  </div>
-                </div>
-              </ng-container>
-            </ng-container>
+              </div>
+            </div>
+            }
+
+            <!-- Validation Errors -->
+            <div class="text-red-900 text-sm mt-1 font-medium"
+              *ngIf="getControl(f.key)?.touched && getControl(f.key)?.invalid">
+              <div *ngIf="getControl(f.key)?.errors?.['required']">Este campo es obligatorio.</div>
+              <div *ngIf="getControl(f.key)?.errors?.['email']">Formato de correo inválido.</div>
+              <div *ngIf="getControl(f.key)?.errors?.['pattern']">Formato inválido.</div>
+              <div *ngIf="getControl(f.key)?.errors?.['minlength']">Mínimo {{ f.validators?.minLength }} caracteres.
+              </div>
+              <div *ngIf="getControl(f.key)?.errors?.['maxlength']">Máximo {{ f.validators?.maxLength }} caracteres.
+              </div>
+              <div *ngIf="getControl(f.key)?.errors?.['fileType']">Tipo de archivo no permitido.</div>
+              <div *ngIf="getControl(f.key)?.errors?.['fileSize']">Archivo demasiado grande.</div>
+            </div>
           </div>
-        </ng-container>
+          }
+          }
+        </div>
+        }
       </div>
-    </ng-container>
-  
-    <button type="submit">Enviar</button>
+      }
+      }
+    </div>
+
+
   </form>
-  
+</div>

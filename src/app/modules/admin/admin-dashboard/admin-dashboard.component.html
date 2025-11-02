@@ -1,0 +1,28 @@
+<div class=" sm:p-6 lg:p-8 overflow-hidden">
+  <!-- Header -->
+  <div class="mb-6 text-center sm:text-left">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Dashboard Escolar</h1>
+  </div>
+
+  <!-- Charts -->
+  @if (view) {
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+   @for (config of chartConfigs; track config.id; let i = $index) {
+  <div class="bg-white rounded-2xl shadow-md p-4 sm:p-6 flex flex-col">
+    <h2 class="text-lg sm:text-xl font-semibold text-gray-700 mb-4">
+      {{ config.title }}
+    </h2>
+    @if (isBrowser && chartOptions[i]) {
+      <div
+        echarts
+        [options]="chartOptions[i]"
+        [initOpts]="getChartInitOpts()"
+        [autoResize]="view"
+        class="w-full h-64 sm:h-80"
+      ></div>
+    }
+  </div>
+}
+    </div>
+  }
+</div>

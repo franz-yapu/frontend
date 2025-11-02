@@ -1,1 +1,10 @@
-/* You can add global styles to this file, and also import other style files */
+
+  @forward 'theme/buttons.scss';
+@forward 'theme/texts.scss';
+@forward 'theme/modal.scss';
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+  @layer tw {
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+  }

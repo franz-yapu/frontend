@@ -1,57 +1,40 @@
-import {  Injectable, Injector } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivateChild, GuardResult, MaybeAsync, Router, RouterStateSnapshot } from '@angular/router';
-
-import {  from, Observable, of } from 'rxjs';
-import { filter, switchMap } from 'rxjs/operators';
-
-
-/* import { MenuStore } from '@project/services/menu.store'; */
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 import { GeneralService } from './gerneral.service';
 
+export const authGuard: CanActivateFn = (route, state) => {
+  const router = inject(Router);
+  const auth = inject(GeneralService);
 
-const recursiveFn :any = (menus: Array<any>,url: Array<string>) => {
-  return menus.reduce((res: any, menu: any) => {
-    if(menu.children) {
-      return recursiveFn(menu.children, url) || res;
-    } else {
-      if(menu.routerLink) {
-        return url.includes(menu.routerLink) || res;
-      } else {
-        return res;
-      }
-    } 
-  }, false);
-}
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard implements CanActivateChild {
-  constructor(
-    private router: Router,
-    private injector:Injector,
-    private gs:GeneralService,
- /*    private menuService :MenuStore */
-  ) {
-
+  const token = auth.getToken();
+  const user = auth.getUser();
+ console.log(user);
+ 
+  if (!token || !user) {
+    router.navigate(['/login']);
+    return false;
   }
-  canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): MaybeAsync<GuardResult> { 
-    const {url} = state;
 
-    /* this.menuService.getMenuByGuard(this.gs.user);
-    return this.menuService.menus$.pipe(
-      filter((data: Array<any>) =>{
-        return data.length > 0;
-      }),
-      switchMap((data: Array<any>) =>{ */
-        /* const validate = recursiveFn(data, url.split('/'));
-        if(validate) { */
-          return of(true)
-       /*  } else {
-          this.router.navigate(['/login']);
-          return of(false);
-        } */
-    /*   })
-    )
-     */
+  // Redirección según rol al acceder a rutas base ('' o directamente a '/')
+ /*  if (state.url === '/' || state.url === '/login') {
+    
+    const role = user.role?.name;
+      console.log(user);
+      
+    if (role === 'ADMIN') {
+      router.navigate(['/admin']);
+      return false;
+    }
+
+    if (role === 'TEACHER' || role === 'TUTOR') {
+      router.navigate(['/home']);
+      return false;
+    }
+
+    // Redirige a ruta genérica si el rol no está mapeado
+    router.navigate(['/home']);
+    return false;
   }
-}
+ */
+  return true;
+};

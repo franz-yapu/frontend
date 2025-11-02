@@ -1,0 +1,150 @@
+<div class="mx-auto p-4 sm:p-6">
+  <!-- Header -->
+  <div
+    class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-gray-300 pb-4"
+  >
+    <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+      📚 Lista de cursos
+    </h2>
+
+    @if (add) {
+    <button
+      (click)="openAddModal()"
+      class="flex items-center justify-center gap-2 bg-red-900 hover:bg-red-800 text-white px-5 py-2.5 rounded-lg shadow-md transition-all duration-200 w-full sm:w-auto"
+    >
+      <span class="material-symbols-outlined text-lg">add</span>
+      <span class="text-base sm:text-lg font-semibold">Añadir curso</span>
+    </button>
+    }
+  </div>
+
+  <!-- Buscador -->
+  <div class="mb-5">
+    <input
+      type="text"
+      [(ngModel)]="searchTerm"
+      (input)="applyFilter()"
+      placeholder="🔍 Buscar curso..."
+      class="w-full sm:w-1/2 border border-gray-300 rounded-xl px-4 py-2.5 text-base focus:ring-2 focus:ring-red-800 focus:outline-none shadow-sm"
+    />
+  </div>
+
+  <!-- Grid con scroll SOLO en los cards -->
+  <div class="max-h-[600px] overflow-y-auto pr-1">
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 p-2">
+      @for (item of filteredCourses; track $index) {
+      <!-- Card -->
+      <div
+        class="rounded-xl shadow-md bg-white overflow-hidden border border-gray-200 hover:shadow-lg transition duration-200"
+      >
+        <!-- Banda de color -->
+        <div class="h-2 bg-gradient-to-r from-red-900 to-red-700"></div>
+
+        <!-- Contenido -->
+        <div class="p-5">
+          <!-- Header con nombre y acciones -->
+          <div class="flex justify-between items-start mb-4">
+            <span
+              class="inline-block px-3 py-1 bg-gray-100 text-gray-800 text-base font-semibold rounded-full uppercase tracking-wider shadow-sm"
+            >
+              {{ item.name }}
+            </span>
+
+            <div class="flex items-center gap-2">
+              @if (edit) {
+              <button
+                (click)="openEditModal(item)"
+                class="p-2 rounded-full shadow bg-gray-100 hover:bg-gray-200 transition"
+                aria-label="Editar curso"
+              >
+                <span
+                  class="material-symbols-outlined text-red-800 hover:text-red-600"
+                >
+                  edit
+                </span>
+              </button>
+
+              @if (item.students.length == 0) {
+              <button
+                (click)="openEliminar(item)"
+                class="p-2 rounded-full shadow bg-gray-100 hover:bg-gray-200 transition"
+                aria-label="Eliminar curso"
+              >
+                <span
+                  class="material-symbols-outlined text-red-800 hover:text-red-600"
+                >
+                  delete
+                </span>
+              </button>
+              } }
+            </div>
+          </div>
+
+          <!-- Profesor -->
+          <div class="flex items-center mb-4">
+            <div
+              class="flex-shrink-0 bg-red-50 p-2 px-3 rounded-full border border-red-200"
+            >
+              <span class="material-symbols-outlined text-red-800">school</span>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-base font-semibold text-gray-900">
+                Prof. {{ item.user.firstName }} {{ item.user.lastName }}
+              </h3>
+              <p class="text-sm text-gray-500">Profesor titular</p>
+            </div>
+          </div>
+
+          <!-- Estudiantes -->
+          <div class="flex items-center mb-4">
+            <div
+              class="flex-shrink-0 bg-blue-50 p-2 px-3 rounded-full border border-blue-200"
+            >
+              <span class="material-symbols-outlined text-blue-700">group</span>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-gray-500">Estudiantes</p>
+              <p class="text-lg font-bold text-gray-900">
+                {{ item.students.length }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Botón Ver detalles -->
+          <div class="pt-4 border-t border-gray-200">
+            <button
+              (click)="studentSelected(item)"
+              class="w-full py-2.5 px-4 bg-gray-800 rounded-lg text-base font-semibold text-white hover:bg-gray-600 transition flex items-center justify-center gap-1.5"
+            >
+              Ver detalles
+              <span class="material-symbols-outlined text-base">
+                arrow_forward
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- Mensaje cuando no hay cursos -->
+  @if (filteredCourses.length == 0) {
+  <div class="text-center py-12 px-4">
+    <span class="text-gray-400 text-5xl sm:text-6xl mb-3">Cursos</span>
+    <h3 class="text-lg sm:text-xl font-semibold text-gray-700">
+      No hay cursos registrados
+    </h3>
+    <p class="text-gray-500 mt-1 text-base sm:text-lg">
+      Agrega nuevos cursos para comenzar
+    </p>
+    <button
+      (click)="openAddModal()"
+      class="mt-5 bg-red-900 hover:bg-red-800 text-white px-5 py-2.5 rounded-lg shadow-md inline-flex items-center text-base sm:text-lg font-semibold transition"
+    >
+      <span class="material-symbols-outlined mr-2 text-lg">add</span>
+      Agregar curso
+    </button>
+  </div>
+  }
+</div>

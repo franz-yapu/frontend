@@ -1,0 +1,112 @@
+<app-bread-crumb [breadcrumbItems]="breadcrumbItems"></app-bread-crumb>
+
+<div class="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+
+  <!-- Tarjeta del estudiante -->
+  <div *ngIf="student" class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 mb-10 transition hover:shadow-xl">
+    <div class="p-6 flex items-start gap-6">
+      <!-- Avatar -->
+      <div class="flex-shrink-0">
+        <div class="h-24 w-24 rounded-full bg-red-800 flex items-center justify-center shadow-inner">
+          <span class="text-white text-4xl font-bold">
+            {{ student?.firstName?.charAt(0) || '' }}{{ student?.lastName?.charAt(0) || '' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Información -->
+      <div class="flex-1">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+          {{ student?.firstName || '' }} {{ student?.middleName || '' }} {{ student?.lastName || '' }}
+        </h1>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
+          <div class="bg-gray-50 p-3 rounded-lg shadow-inner">
+            <span class="font-semibold text-gray-700">Carnet:</span> {{ student?.identityCard || 'N/A' }}
+          </div>
+          <div class="bg-gray-50 p-3 rounded-lg shadow-inner">
+            <span class="font-semibold text-gray-700">Nacimiento:</span> {{ student?.birthDate ? (student.birthDate | date:'longDate') : 'N/A' }}
+          </div>
+          <div class="bg-gray-50 p-3 rounded-lg shadow-inner flex items-center justify-between">
+            <span class="font-semibold text-gray-700">Estado:</span>
+            <span class="ml-2 inline-flex items-center px-3 py-1 rounded-full bg-red-100 text-red-900 text-sm font-semibold capitalize">
+              {{ student?.status || 'N/A' }}
+            </span>
+          </div>
+        </div>
+
+        <p class="text-gray-700 text-sm bg-gray-50 p-3 rounded-lg shadow-inner">
+          <span class="font-semibold">Dirección:</span> {{ student?.address || 'N/A' }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Registro de asistencias -->
+  <div class="max-w-4xl mx-auto">
+    <div class="bg-white shadow-lg rounded-2xl border border-gray-200 flex flex-col">
+      
+      <!-- Título sección -->
+      <div class="px-6 py-4 bg-red-800 border-b border-gray-300">
+        <h2 class="text-xl font-bold text-white">Registro de Asistencias</h2>
+        <p class="text-sm text-white/80">Historial detallado de asistencia del estudiante</p>
+      </div>
+
+      <!-- Scroll solo en el contenido -->
+      <div class="overflow-y-auto max-h-[520px] divide-y divide-gray-200">
+        <ng-container *ngFor="let monthGroup of monthGroups">
+          
+          <!-- Header mes -->
+          <div (click)="toggleMonth(monthGroup.month)"
+               class="flex justify-between items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 cursor-pointer transition rounded-t-md">
+            <h3 class="text-sm font-semibold text-gray-800">
+              {{ monthGroup.month | date:'MMMM yyyy' | titlecase }}
+              <span class="ml-2 text-xs font-normal text-gray-500">
+                ({{ monthGroup.summary.present }} presentes, 
+                {{ monthGroup.summary.late }} atrasos, 
+                {{ monthGroup.summary.absent }} faltas, 
+                {{ monthGroup.summary.license }} licencias)
+              </span>
+            </h3>
+            <svg [class.rotate-180]="monthGroup.expanded" class="w-5 h-5 text-red-700 transition-transform"
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+
+          <!-- Detalle asistencias -->
+          <div *ngIf="monthGroup.expanded" class="px-6 py-4 bg-white">
+            <div *ngFor="let attendance of monthGroup.attendances"
+                 class="flex justify-between items-center p-3 mb-2 rounded-lg hover:bg-gray-50 shadow-sm transition border">
+              <div class="flex items-center gap-2 text-gray-800">
+               <svg class="w-5 h-5 text-red-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+    </svg>
+                <span class="text-sm font-medium">{{ attendance.date | date:'fullDate' }}</span>
+              </div>
+              <div>
+                <span [ngClass]="{
+                    'bg-green-100 text-green-800': attendance.status === 'present',
+                    'bg-red-100 text-red-800': attendance.status === 'absent',
+                    'bg-yellow-100 text-yellow-800': attendance.status === 'late',
+                    'bg-blue-100 text-blue-800': attendance.status === 'license'
+                  }"
+                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold">
+                  {{ mapAttendanceStatus(attendance.status) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </ng-container>
+
+        <!-- Mensaje si no hay asistencias -->
+        <div *ngIf="!student?.attendances?.length" class="px-6 py-6 text-center text-gray-500">
+          No se encontraron registros de asistencia.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,159 @@
-<app-navbar></app-navbar>
+<!-- Contenedor principal que ocupa toda la pantalla -->
+<div class="flex flex-col min-h-screen">
 
+  <!-- NAVBAR -->
+  <nav class="bg-red-900">
+    <div class="mx-auto px-2 sm:px-6 lg:px-8">
+      <div class="relative flex h-16 items-center justify-between">
+        <div class="flex flex-1 items-center text-white justify-start">
+          MI AGENDA
+        </div>
+        <div class="flex items-center gap-4 text-white">
+          
+        <!-- Botón de notificaciones -->
+<div class="relative">
+  <button 
+    type="button"
+    (click)="toggleNotifications()"
+    class="relative p-2 rounded-full hover:bg-red-800 transition-colors duration-200"
+  >
+    <span class="material-symbols-outlined text-xl">
+      notifications
+    </span>
+    <!-- Contador de notificaciones no leídas -->
+    <span 
+      *ngIf="unreadCount > 0"
+      class="absolute -top-1 -right-1 bg-yellow-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold"
+    >
+      {{ unreadCount }}
+    </span>
+  </button>
+
+  <!-- Dropdown de notificaciones con flecha -->
+  <div 
+    *ngIf="showNotifications"
+    class="notifications-dropdown absolute right-0 mt-3 w-80 bg-white rounded-lg shadow-xl z-50 border border-gray-200"
+  >
+    <!-- Flecha indicadora -->
+    <div class="absolute -top-2 right-3 transform">
+      <div class="w-4 h-4 bg-white border-t border-l border-gray-200 rotate-45"></div>
+    </div>
+
+    <!-- Header -->
+    <div class="p-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-800">Notificaciones</h3>
+      <p class="text-sm text-gray-600">Tienes {{ notifications.length }} notificaciones</p>
+    </div>
+
+    <!-- Lista de notificaciones -->
+    <div class="max-h-96 overflow-y-auto">
+      <div 
+        *ngFor="let notification of notifications" 
+        (click)="onNotificationClick(notification)"
+        class="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150 cursor-pointer group"
+      >
+        <div class="flex gap-3 items-start">
+          <!-- Icono -->
+          <div class="flex-shrink-0">
+            <span 
+              class="flex items-center justify-center w-10 h-10 rounded-lg shadow-inner"
+              [class]="notification.bgColor + ' ' + notification.color"
+            >
+              <span class="material-symbols-outlined text-lg">
+                {{ notification.icon }}
+              </span>
+            </span>
+          </div>
+
+          <!-- Contenido -->
+          <div class="flex-1 min-w-0">
+            <h4 class="text-sm font-semibold text-gray-800 mb-1">
+              {{ notification.title }}
+            </h4>
+            <p class="text-xs text-gray-600 mb-2">
+              {{ notification.date | date:'d MMM, yyyy' | lowercase }}
+            </p>
+            <p *ngIf="notification.description" class="text-sm text-gray-700 line-clamp-2">
+              {{ notification.description }}
+            </p>
+            <div class="mt-2">
+              <span 
+                *ngIf="notification.tipo === 'attendance'"
+                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+              >
+                Asistencia
+              </span>
+              <span 
+                *ngIf="notification.tipo === 'behavior'"
+                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+              >
+                Comportamiento
+              </span>
+            </div>
+          </div>
+
+          <!-- Indicador de click -->
+          <div class="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <span class="material-symbols-outlined text-gray-400 text-sm">
+              chevron_right
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado vacío -->
+      <div 
+        *ngIf="notifications.length === 0"
+        class="p-8 text-center"
+      >
+        <span class="material-symbols-outlined text-gray-400 text-4xl mb-2">
+          notifications_off
+        </span>
+        <p class="text-gray-500 text-sm">No hay notificaciones</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="p-3 bg-gray-50 rounded-b-lg border-t border-gray-200">
+      <button 
+        (click)="loadNotifications(); $event.stopPropagation()"
+        class="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium py-2 flex items-center justify-center gap-2 transition-colors duration-200"
+      >
+        <span class="material-symbols-outlined text-base">
+          refresh
+        </span>
+        Actualizar notificaciones
+      </button>
+    </div>
+  </div>
+</div>
+
+          <!-- Botón usuario -->
+          <div class="relative ml-3">
+            <button type="button"
+              class="relative flex items-center text-sm rounded-full bg-gray-800 px-2 py-1 focus:outline-none">
+              <span class="material-symbols-outlined">
+                account_circle
+              </span>
+              <p class="ml-2 text-sm font-medium text-white">{{ user.firstName }} {{ user.lastName }}</p>
+            </button>
+          </div>
+
+          <!-- Botón salir -->
+          <div>
+            <button (click)="logout()"
+              class="px-6 py-2 bg-red-800 hover:bg-indigo-700 text-white text-sm font-medium rounded-md shadow-sm">
+              Salir
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 overflow-y-auto p-4 bg-gray-200">
     <router-outlet></router-outlet>
- 
+  </main>
+
+</div>
