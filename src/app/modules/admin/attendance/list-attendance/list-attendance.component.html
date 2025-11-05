@@ -1,28 +1,26 @@
- <div class="mx-auto p-4 sm:p-6">
-@if (viewBreadcrumb) {
-  <app-bread-crumb [breadcrumbItems]="breadcrumbItems"></app-bread-crumb>
-}
-  
+<div class="mx-auto p-4 sm:p-6">
+  @if (viewBreadcrumb) {
+    <app-bread-crumb [breadcrumbItems]="breadcrumbItems"></app-bread-crumb>
+  }
 
   <!-- Header con selector de fecha -->
-  <div
-    class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-gray-200 pb-4">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-gray-200 pb-4">
     <h2 class="text-xl sm:text-2xl font-bold text-gray-800">
       Control de Asistencia @if(dataCourse){ {{dataCourse.name}}}
     </h2>
 
-    <div class="flex  sm:flex-row gap-3">
-  <div>
-    <label class="block text-xs font-medium text-gray-700 mb-1">Fecha inicial</label>
-    <input type="date" [(ngModel)]="startDate" (change)="updateDateRange()" 
-           class="text-xs p-1 border rounded-md h-8 w-36">
-  </div>
-  <div>
-    <label class="block text-xs font-medium text-gray-700 mb-1">Fecha final</label>
-    <input type="date" [(ngModel)]="endDate" (change)="updateDateRange()"
-           class="text-xs p-1 border rounded-md h-8 w-36">
-  </div>
-</div>
+    <div class="flex sm:flex-row gap-3">
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">Fecha inicial</label>
+        <input type="date" [(ngModel)]="startDate" (change)="updateDateRange()" 
+               class="text-xs p-1 border rounded-md h-8 w-36">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700 mb-1">Fecha final</label>
+        <input type="date" [(ngModel)]="endDate" (change)="updateDateRange()"
+               class="text-xs p-1 border rounded-md h-8 w-36">
+      </div>
+    </div>
   </div>
 
   <!-- Tabla de asistencia -->
@@ -30,19 +28,22 @@
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-800">
         <tr>
-          <th
-            class="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider sticky left-0 bg-gray-800 z-10">
+          <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider sticky left-0 bg-gray-800 z-10">
             Estudiante
           </th>
           @for (date of dateRange; track date) {
           <th class="px-2 py-3 text-center text-xs font-medium uppercase tracking-wider min-w-[70px]" [ngClass]="{
              'bg-gray-800 text-white': !isWeekend(date),
-           'bg-red-100 text-gray-800': isWeekend(date)
+             'bg-red-100 text-gray-800': isWeekend(date)
            }">
             {{ date | date:'dd/MM' }}<br>
             <span class="text-xs font-normal">{{ getDayName(date) }}</span>
           </th>
           }
+          <!-- Nueva columna para acciones -->
+          <th class="px-4 py-3 text-center text-xs font-medium text-white uppercase tracking-wider sticky right-0 bg-gray-800 z-10">
+            Acciones
+          </th>
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
@@ -54,7 +55,10 @@
               <div class="bg-red-900 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">
                 {{student.firstName.charAt(0)}}{{student.lastName.charAt(0)}}
               </div>
-              <span class="font-medium">{{student.firstName}}  {{student.lastName}} {{student.middleName}}</span>
+              <div>
+                <span class="font-medium block">{{student.firstName}} {{student.lastName}} {{student.middleName}}</span>
+                <span class="text-xs text-gray-500">Total asistencias: {{getStudentAttendanceCount(student.id)}}</span>
+              </div>
             </div>
           </td>
 
@@ -66,49 +70,62 @@
                 }">
             @if (isToday(date) && !isWeekend(date)) {
             <!-- Editable solo para hoy y días no weekend -->
-         <select  [disabled]="user?.role?.name != 'TEACHER'"
-  [ngModel]="getStatus(student.id, date)"
-  (ngModelChange)="setStatus(student.id, date, $event)"
-  *ngIf="attendanceRecords[student.id] && attendanceRecords[student.id][formatDate(date)]"
-  class="block w-full py-1 px-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-xs"
-  [ngClass]="{
-    'bg-green-100 text-green-800': getStatus(student.id, date) === 'present',
-    'bg-yellow-100 text-yellow-800': getStatus(student.id, date) === 'late',
-    'bg-red-100 text-red-800': getStatus(student.id, date) === 'absent',
-    'bg-blue-100 text-blue-800': getStatus(student.id, date) === 'license'
-  }"
->
-  <option value="present">Presente</option>
-  <option value="late">Atraso</option>
-  <option value="absent">Falta</option>
-  <option value="license">Licencia</option>
-</select>
+            <select [disabled]="user?.role?.name != 'TEACHER'"
+              [ngModel]="getStatus(student.id, date)"
+              (ngModelChange)="setStatus(student.id, date, $event)"
+              *ngIf="attendanceRecords[student.id] && attendanceRecords[student.id][formatDate(date)]"
+              class="block w-full py-1 px-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-xs"
+              [ngClass]="{
+                'bg-green-100 text-green-800': getStatus(student.id, date) === 'present',
+                'bg-yellow-100 text-yellow-800': getStatus(student.id, date) === 'late',
+                'bg-red-100 text-red-800': getStatus(student.id, date) === 'absent',
+                'bg-blue-100 text-blue-800': getStatus(student.id, date) === 'license'
+              }"
+            >
+              <option value="present">Presente</option>
+              <option value="late">Atraso</option>
+              <option value="absent">Falta</option>
+              <option value="license">Licencia</option>
+            </select>
 
-<!-- Si no hay data inicializada para hoy: -->
-<span *ngIf="!attendanceRecords[student.id] || !attendanceRecords[student.id][formatDate(date)]"
-      class="inline-block w-full px-2 py-1 text-xs text-center text-gray-400 bg-gray-100 rounded">
-  Sin datos
-</span>
+            <!-- Si no hay data inicializada para hoy: -->
+            <span *ngIf="!attendanceRecords[student.id] || !attendanceRecords[student.id][formatDate(date)]"
+                  class="inline-block w-full px-2 py-1 text-xs text-center text-gray-400 bg-gray-100 rounded">
+              Sin datos
+            </span>
 
             } @else {
             <!-- Modo vista para otros días -->
-           <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="{
-  'bg-green-100 text-green-800': attendanceRecords[student.id][formatDate(date)]?.status === 'present',
-  'bg-yellow-100 text-yellow-800': attendanceRecords[student.id][formatDate(date)]?.status === 'late',
-  'bg-red-100 text-red-800': attendanceRecords[student.id][formatDate(date)]?.status === 'absent',
-  'bg-blue-100 text-blue-800': attendanceRecords[student.id][formatDate(date)]?.status === 'license',
-  'bg-gray-100 text-gray-500': isWeekend(date) || !attendanceRecords[student.id][formatDate(date)]
-}">
-  @if(isWeekend(date)){
-    -
-  }
-  @else {
-    {{ getAttendanceLabel(attendanceRecords[student.id][formatDate(date)]?.status) }}
-  }
-</span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="{
+              'bg-green-100 text-green-800': attendanceRecords[student.id][formatDate(date)]?.status === 'present',
+              'bg-yellow-100 text-yellow-800': attendanceRecords[student.id][formatDate(date)]?.status === 'late',
+              'bg-red-100 text-red-800': attendanceRecords[student.id][formatDate(date)]?.status === 'absent',
+              'bg-blue-100 text-blue-800': attendanceRecords[student.id][formatDate(date)]?.status === 'license',
+              'bg-gray-100 text-gray-500': isWeekend(date) || !attendanceRecords[student.id][formatDate(date)]
+            }">
+              @if(isWeekend(date)){
+                -
+              }
+              @else {
+                {{ getAttendanceLabel(attendanceRecords[student.id][formatDate(date)]?.status) }}
+              }
+            </span>
             }
           </td>
           }
+
+          <!-- Columna de acciones fija a la derecha -->
+          <td class="px-4 py-4 align-middle sticky right-0 bg-white z-10">
+            <button 
+              (click)="viewAttendanceHistory(student)"
+              class="flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md 
+                     bg-blue-100 text-blue-900 hover:bg-blue-200 
+                     border border-blue-200 shadow-sm transition-colors duration-200"
+            >
+              <span class="material-symbols-outlined text-base">history</span>
+              Detalles
+            </button>
+          </td>
         </tr>
         }
       </tbody>

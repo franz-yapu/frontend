@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BreadCrumbComponent } from '../../../../project/components/bread-crumb/bread-crumb.component';
 import { AdminService } from '../../admin.service';
 import { CommonModule } from '@angular/common';
@@ -33,6 +33,7 @@ export class ListAttendanceComponent implements OnInit {
     private route: ActivatedRoute,
     private service: AdminService,
     private generalService: GeneralService,
+    private router:Router,
   ) {
     const today = new Date();
     const initialStart = new Date(today);
@@ -241,4 +242,18 @@ setStatus(studentId: string, date: Date, value: string): void {
   this.attendanceRecords[studentId][dateStr].status = value;
   this.saveAttendance(studentId, date);
 }
+
+  getStudentAttendanceCount(studentId: string): number {
+    if (!this.attendanceRecords[studentId]) return 0;
+    
+    return Object.values(this.attendanceRecords[studentId]).filter((record: any) => 
+      record.status === 'present' || record.status === 'late'
+    ).length;
+  }
+
+  // Método para ver historial
+  viewAttendanceHistory(student: any): void {
+    this.router.navigate(['/admin/attendance-history', student.id]);
+  }
+
 }
