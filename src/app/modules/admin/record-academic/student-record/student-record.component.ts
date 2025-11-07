@@ -27,7 +27,14 @@ export class StudentRecordComponent implements OnInit {
   public breadcrumbItems: any[] = [];
   
   user: any;
-
+  public catalogs: any = {
+  subRole: [
+    {label:'General', value:'1'},
+    {label:'Religion', value:'2'},
+    {label:'Música', value:'3'},
+    {label:'Educación Física ', value:'4'}
+  ]
+};
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -75,6 +82,7 @@ export class StudentRecordComponent implements OnInit {
     try {
       const res: any = await this.service.getSubjects();
       console.log(res);
+      console.log(this.user);
       
       this.subjects = res.data;
       console.log(this.subjects);
@@ -89,6 +97,8 @@ export class StudentRecordComponent implements OnInit {
       const res: any = await this.service.getStudentById(this.studentId);
       
       if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+        console.log(res);
+        
         this.student = res.data[0];
         this.organizeStudentRecords();
       } else {
@@ -134,20 +144,62 @@ export class StudentRecordComponent implements OnInit {
     this.selectedSemester = semester;
   }
 
-  openEditModal(subject: any) {
-    if (!this.student) return;
-    
-    this.editingSubject = subject;
-    const record = this.getStudentRecord(subject.id, this.selectedSemester);
-    this.currentAcademicRecord = record;
-    
-    // Cargar las notas existentes o null si no existen
-    this.editForm.patchValue({
-      grade1: record?.grade1 || null,
-      grade2: record?.grade2 || null,
-      grade3: record?.grade3 || null
-    });
+openEditModal(subject: any) {
+  if (!this.student) return;
+  
+  // Validar si el profesor puede editar esta materia según su subRole
+  if (!this.canEditSubject(subject)) {
+    return; // No abre el modal si no tiene permisos
   }
+  
+  this.editingSubject = subject;
+  const record = this.getStudentRecord(subject.id, this.selectedSemester);
+  this.currentAcademicRecord = record;
+  
+  // Cargar las notas existentes o null si no existen
+  this.editForm.patchValue({
+    grade1: record?.grade1 || null,
+    grade2: record?.grade2 || null,
+    grade3: record?.grade3 || null
+  });
+}
+
+
+canEditSubject(subject: any): boolean {
+  // Si no es profesor, no puede editar
+  if (this.user?.role?.name !== 'TEACHER') {
+    return false;
+  }
+  
+  const userSubRole = this.user?.subRole;
+  
+  // Profesor general puede editar todas las materias EXCEPTO las especializadas
+  if (userSubRole === '1') {
+    const specializedSubjects = [
+      'Valores, Espiritualidad y Religiones',
+      'Educación Musical', 
+      'Educación Física y Deportes'
+    ];
+    return !specializedSubjects.includes(subject.name);
+  }
+  
+  // Profesor de Religión solo puede editar su materia
+  if (userSubRole === '2') {
+    return subject.name === 'Valores, Espiritualidad y Religiones';
+  }
+  
+  // Profesor de Música solo puede editar su materia
+  if (userSubRole === '3') {
+    return subject.name === 'Educación Musical';
+  }
+  
+  // Profesor de Educación Física solo puede editar su materia
+  if (userSubRole === '4') {
+    return subject.name === 'Educación Física y Deportes';
+  }
+  
+  return false;
+}
 
   closeModal() {
     this.editingSubject = null;

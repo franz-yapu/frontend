@@ -186,5 +186,14 @@ getStudentById(studentId: string) {
     return firstValueFrom(this.http.delete(`${environment.backend}/users/${id}`));
   }
 
+
+    getStudentAttendances(studentId: string) {
+    const where = {"studentId":studentId};
+    const params = new HttpParams()
+      .set('where', JSON.stringify(where))
+      .set('perPage', JSON.stringify(1000))
+    return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Attendance/all/paginate`, { params }));
+  }
+
   
 }

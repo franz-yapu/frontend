@@ -76,17 +76,21 @@
                 {{record?.finalGrade || '-'}}
               </span>
             </td>
-            @if(user?.role?.name == 'TEACHER'){
-                <td class="px-6 py-4 whitespace-nowrap text-center">
-              <button 
-                (click)="openEditModal(subject)"
-                class="inline-flex items-center px-3 py-1 bg-red-900 text-white text-sm rounded-md hover:bg-red-800 transition-colors"
-              >
-                <span class="material-symbols-outlined text-sm mr-1">edit</span>
-                Editar
-              </button>
-            </td>
-            }
+           @if(user?.role?.name == 'TEACHER'){
+  <td class="px-6 py-4 whitespace-nowrap text-center">
+    <button 
+      (click)="openEditModal(subject)"
+      [disabled]="!canEditSubject(subject)"
+      [class.opacity-50]="!canEditSubject(subject)"
+      [class.cursor-not-allowed]="!canEditSubject(subject)"
+      class="inline-flex items-center px-3 py-1 bg-red-900 text-white text-sm rounded-md hover:bg-red-800 transition-colors disabled:bg-gray-400"
+      [title]="!canEditSubject(subject) ? 'No tiene permisos para editar esta materia' : 'Editar notas'"
+    >
+      <span class="material-symbols-outlined text-sm mr-1">edit</span>
+      Editar
+    </button>
+  </td>
+}
           
           </tr>
         }

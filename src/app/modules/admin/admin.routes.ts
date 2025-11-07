@@ -14,6 +14,7 @@ import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.compo
 import { AboutSchoolComponent } from './about-school/about-school.component';
 import { RecordListComponent } from './record-academic/record-list/record-list.component';
 import { StudentRecordComponent } from './record-academic/student-record/student-record.component';
+import { AttendanceHistoryComponent } from './attendance/attendance-history/attendance-history.component';
 
 
 
@@ -79,6 +80,10 @@ export const routes: Routes = [
         path: 'record',
         component: RecordAcademicComponent
       },
+      {
+      path: 'attendance-history/:id',
+     component: AttendanceHistoryComponent
+    },
       /* {
         path: 'record/:id',
         component: RecordComponent

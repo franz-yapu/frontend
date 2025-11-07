@@ -22,7 +22,7 @@ export class TeacherModalComponent implements OnInit {
     this.formReference = form;
   };
   initiaData = this.dynamicDialogConfig.data?.data;
-  catalogs: any = {};
+  catalogs: any = {subRole:[{label:'General', value:'1'},{label:'Religion', value:'2'},{label:'Música', value:'3'},{label:'Educación Física ', value:'4'}]};
   public view = false
   constructor(
     public ref: DynamicDialogRef,
