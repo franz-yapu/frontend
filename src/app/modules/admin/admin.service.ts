@@ -47,7 +47,7 @@ export class AdminService {
   }
 
 /* Couse Service */
- getUserCourse(page: number = 1, perPage: number = 6, searchTerm: string = '') {
+ getUserCourse(page: number = 1, perPage: number = 1000, searchTerm: string = '') {
   const include = {"students": true, "user": true};
   let params = new HttpParams()
     .set('include', JSON.stringify(include))

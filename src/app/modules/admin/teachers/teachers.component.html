@@ -15,15 +15,88 @@
     </button>
   </div>
 
-  <!-- Buscador -->
-  <div class="mb-4">
-    <input
-      type="text"
-      [(ngModel)]="searchTerm"
-      (input)="applyFilter()"
-      placeholder="Buscar usuario..."
-      class="w-full sm:w-1/2 border border-gray-300 rounded-lg px-4 py-2 text-base focus:ring-2 focus:ring-red-800 focus:outline-none"
-    />
+  <!-- Filtros Avanzados -->
+  <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <!-- Buscador General -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Buscar usuario
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="applyFilter()"
+          placeholder="Nombre, teléfono, dirección..."
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:ring-2 focus:ring-red-800 focus:outline-none"
+        />
+      </div>
+
+      <!-- Filtro por Rol -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Filtrar por rol
+        </label>
+        <select
+          [(ngModel)]="selectedRole"
+          (change)="applyFilter()"
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:ring-2 focus:ring-red-800 focus:outline-none"
+        >
+          <option value="">Todos los roles</option>
+          <option value="ADMIN">Administrativo</option>
+          <option value="TEACHER">Profesor</option>
+          <option value="TUTOR">Tutor</option>
+          <option value="GUEST">Observador</option>
+        </select>
+      </div>
+
+      <!-- Filtro por Estado (si tienes el campo) -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Estado
+        </label>
+        <select
+          [(ngModel)]="selectedStatus"
+          (change)="applyFilter()"
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:ring-2 focus:ring-red-800 focus:outline-none"
+        >
+          <option value="">Todos los estados</option>
+          <option value="active">Activo</option>
+          <option value="inactive">Inactivo</option>
+        </select>
+      </div>
+
+      <!-- Ordenar por -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Ordenar por
+        </label>
+        <select
+          [(ngModel)]="sortBy"
+          (change)="applyFilter()"
+          class="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:ring-2 focus:ring-red-800 focus:outline-none"
+        >
+          <option value="name">Nombre A-Z</option>
+          <option value="nameDesc">Nombre Z-A</option>
+          <option value="role">Rol</option>
+          <option value="recent">Más recientes</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Botones de acción de filtros -->
+    <div class="flex justify-between items-center">
+      <div class="text-sm text-gray-600">
+        Mostrando {{ getDisplayedRange() }} de {{ totalUsers }} usuarios
+      </div>
+      <button
+        (click)="clearFilters()"
+        class="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+      >
+        <span class="material-symbols-outlined text-base">clear_all</span>
+        Limpiar filtros
+      </button>
+    </div>
   </div>
 
   <!-- Tabla responsive con scroll en tbody -->
@@ -33,9 +106,13 @@
       <thead class="bg-gray-800 sticky top-0 z-10">
         <tr>
           <th
-            class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider"
+            class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider cursor-pointer"
+            (click)="sortByField('name')"
           >
             Nombre
+            <span class="material-symbols-outlined text-xs ml-1">
+              {{ sortField === 'name' ? (sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more' }}
+            </span>
           </th>
           <th
             class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider"
@@ -48,14 +125,18 @@
             Dirección
           </th>
           <th
-            class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider"
+            class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider cursor-pointer"
+            (click)="sortByField('role')"
           >
             Rol
+            <span class="material-symbols-outlined text-xs ml-1">
+              {{ sortField === 'role' ? (sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more' }}
+            </span>
           </th>
-            <th
+          <th
             class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider"
           >
-           
+            Acciones
           </th>
         </tr>
       </thead>
@@ -65,64 +146,167 @@
     <div class="max-h-[500px] overflow-y-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <tbody class="bg-white divide-y divide-gray-200">
-          @for (user of filteredUsers; track $index) {
+          @for (user of paginatedUsers; track user.id; let i = $index) {
           <tr
             class="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
-            
           >
             <td class="px-6 py-4 whitespace-nowrap" (click)="openEditModal(user)">
-              <div class="text-base font-medium text-gray-900">
-                {{ user.firstName + ' ' + user.lastName }}
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                  <span class="text-red-800 font-medium text-sm">
+                    {{ getInitials(user.firstName + ' ' + user.lastName) }}
+                  </span>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-gray-900">
+                    {{ user.firstName + ' ' + user.lastName }}
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    {{ user.email || 'Sin email' }}
+                  </div>
+                </div>
               </div>
-
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-base text-gray-600" (click)="openEditModal(user)">
               {{ user.phone || 'N/A' }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-base text-gray-600" (click)="openEditModal(user)">
-              {{ user.address }}
+              {{ user.address || 'N/A' }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap" (click)="openEditModal(user)">
               <span
-                class="px-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-red-100 text-red-800"
+                [class]="getRoleBadgeClass(user.role.name)"
+                class="px-2 inline-flex text-sm leading-5 font-semibold rounded-full"
               >
                 {{ roleName(user.role.name) }}
               </span>
             </td>
-            <td>
-              <button
-                  (click)="deleteUser(user)"
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <div class="flex items-center justify-end space-x-2">
+                <button
+                  (click)="openEditModal(user)"
+                  class="p-2 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-700 transition"
+                  title="Editar"
+                >
+                  <span class="material-symbols-outlined text-base">edit</span>
+                </button>
+                <button
+                  (click)="$event.stopPropagation(); deleteUser(user);"
                   class="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-700 transition"
                   title="Eliminar"
                 >
                   <span class="material-symbols-outlined text-base">delete</span>
-               </button>   
+                </button>
+              </div>
             </td>
-             
-            
           </tr>
           }
         </tbody>
       </table>
     </div>
 
-    <!-- Mensaje cuando no hay estudiantes -->
-    @if (filteredUsers?.length == 0) {
+    <!-- Paginación -->
+    @if (filteredUsers.length > 0) {
+    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+      <div class="flex-1 flex justify-between items-center sm:hidden">
+        <button
+          (click)="previousPage()"
+          [disabled]="currentPage === 1"
+          class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Anterior
+        </button>
+        <span class="text-sm text-gray-700">
+          Página {{ currentPage }} de {{ totalPages }}
+        </span>
+        <button
+          (click)="nextPage()"
+          [disabled]="currentPage === totalPages"
+          class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Siguiente
+        </button>
+      </div>
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Mostrando
+            <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
+            a
+            <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, totalUsers) }}</span>
+            de
+            <span class="font-medium">{{ totalUsers }}</span>
+            resultados
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <button
+              (click)="previousPage()"
+              [disabled]="currentPage === 1"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span class="sr-only">Anterior</span>
+              <span class="material-symbols-outlined text-base">chevron_left</span>
+            </button>
+            
+            <!-- Números de página -->
+            @for (page of getPageNumbers(); track page) {
+              <button
+                (click)="goToPage(page)"
+                [class]="page === currentPage 
+                  ? 'z-10 bg-red-50 border-red-500 text-red-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium'
+                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium'"
+              >
+                {{ page }}
+              </button>
+            }
+            
+            <button
+              (click)="nextPage()"
+              [disabled]="currentPage === totalPages"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span class="sr-only">Siguiente</span>
+              <span class="material-symbols-outlined text-base">chevron_right</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- Mensaje cuando no hay usuarios -->
+    @if (filteredUsers.length === 0) {
     <div class="text-center py-12 px-4">
-      <span class="text-gray-400 text-5xl sm:text-6xl mb-3">Usuarios</span>
+      <span class="text-gray-400 text-5xl sm:text-6xl mb-3 material-symbols-outlined">group</span>
       <h3 class="text-lg sm:text-xl font-medium text-gray-600">
-        No hay usuarios registrados
+        No se encontraron usuarios
       </h3>
       <p class="text-gray-500 mt-1 text-base sm:text-lg">
-        Agrega nuevos usuario para comenzar
+        @if (hasActiveFilters()) {
+          Intenta ajustar los filtros para ver más resultados
+        } @else {
+          Agrega nuevos usuarios para comenzar
+        }
       </p>
-      <button
-        (click)="openAddModal()"
-        class="mt-4 bg-red-900 hover:bg-red-800 text-white px-4 py-2 rounded-md inline-flex items-center text-base sm:text-lg"
-      >
-        <span class="material-symbols-outlined mr-1 text-base">add</span>
-        Agregar usuario
-      </button>
+      @if (hasActiveFilters()) {
+        <button
+          (click)="clearFilters()"
+          class="mt-4 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md inline-flex items-center text-base sm:text-lg"
+        >
+          <span class="material-symbols-outlined mr-1 text-base">clear_all</span>
+          Limpiar filtros
+        </button>
+      } @else {
+        <button
+          (click)="openAddModal()"
+          class="mt-4 bg-red-900 hover:bg-red-800 text-white px-4 py-2 rounded-md inline-flex items-center text-base sm:text-lg"
+        >
+          <span class="material-symbols-outlined mr-1 text-base">add</span>
+          Agregar usuario
+        </button>
+      }
     </div>
     }
   </div>
