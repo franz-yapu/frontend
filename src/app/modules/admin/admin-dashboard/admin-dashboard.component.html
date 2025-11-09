@@ -17,9 +17,32 @@
           @if (config.type === 'filtrable' && config.filters) {
             <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
               <h3 class="text-sm font-medium text-gray-700 mb-3">Filtros:</h3>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <!-- Filtro de Cursos (OBLIGATORIO) -->
-                @if (config.filters.cursos && config.filters.cursos.length > 0) {
+              
+              <!-- Para charts de nivel (faltas-curso, comportamiento-curso) -->
+              @if (config.id !== 'notas-filtradas' && config.filters.niveles && config.filters.niveles.length > 0) {
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                      Nivel
+                    </label>
+                    <select 
+                      [ngModel]="getFilterValue(config.id, 'nivel')"
+                      (ngModelChange)="setFilterValue(config.id, 'nivel', $event)"
+                      class="w-full text-xs p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-900 focus:border-red-900"
+                    >
+                      <option value="">Todos los niveles</option>
+                      @for (nivel of config.filters.niveles; track nivel) {
+                        <option [value]="nivel">{{ nivel }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+              }
+
+              <!-- Para notas-filtradas (filtros originales) -->
+              @if (config.id === 'notas-filtradas') {
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <!-- Filtro de Cursos -->
                   <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">
                       Curso <span class="text-red-500">*</span>
@@ -27,7 +50,6 @@
                     <select 
                       [ngModel]="getFilterValue(config.id, 'curso')"
                       (ngModelChange)="setFilterValue(config.id, 'curso', $event)"
-                      required
                       class="w-full text-xs p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-900 focus:border-red-900"
                       [class.border-red-300]="!getFilterValue(config.id, 'curso')"
                     >
@@ -40,10 +62,8 @@
                       <p class="text-xs text-red-500 mt-1">Debe seleccionar un curso</p>
                     }
                   </div>
-                }
 
-                <!-- Filtro de Materias (OPCIONAL) -->
-                @if (config.filters.materias && config.filters.materias.length > 0) {
+                  <!-- Filtro de Materias -->
                   <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Materia</label>
                     <select 
@@ -58,10 +78,8 @@
                       }
                     </select>
                   </div>
-                }
 
-                <!-- Filtro de Profesores (OBLIGATORIO) -->
-                @if (config.filters.profesores && config.filters.profesores.length > 0) {
+                  <!-- Filtro de Profesores -->
                   <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">
                       Profesor <span class="text-red-500">*</span>
@@ -69,7 +87,6 @@
                     <select 
                       [ngModel]="getFilterValue(config.id, 'profesor')"
                       (ngModelChange)="setFilterValue(config.id, 'profesor', $event)"
-                      required
                       [disabled]="!getFilterValue(config.id, 'curso')"
                       class="w-full text-xs p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-900 focus:border-red-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
                       [class.border-red-300]="!getFilterValue(config.id, 'profesor')"
@@ -85,13 +102,13 @@
                       <p class="text-xs text-red-500 mt-1">Debe seleccionar un profesor</p>
                     }
                   </div>
-                }
-              </div>
+                </div>
+              }
               
               <!-- Botón para limpiar filtros -->
               <div class="mt-3 flex justify-between items-center">
-                <!-- Mensaje de validación -->
-                @if (!getFilterValue(config.id, 'curso') || !getFilterValue(config.id, 'profesor')) {
+                <!-- Mensaje de validación para notas-filtradas -->
+                @if (config.id === 'notas-filtradas' && (!getFilterValue(config.id, 'curso') || !getFilterValue(config.id, 'profesor'))) {
                   <div class="text-xs text-red-500 font-medium">
                     ⚠️ 
                     @if (!getFilterValue(config.id, 'curso')) {
@@ -131,19 +148,33 @@
             ></div>
           }
 
-          <!-- Chart para gráficos CON filtros (solo visibles con filtros completos) -->
-          @if (isBrowser && chartOptions[i] && config.type === 'filtrable' && getFilterValue(config.id, 'curso') && getFilterValue(config.id, 'profesor')) {
-            <div
-              echarts
-              [options]="chartOptions[i]"
-              [initOpts]="getChartInitOpts()"
-              [autoResize]="view"
-              class="w-full h-64 sm:h-80"
-            ></div>
+          <!-- Chart para gráficos CON filtros -->
+          @if (isBrowser && chartOptions[i] && config.type === 'filtrable') {
+            <!-- Para charts de nivel (siempre visibles) -->
+            @if (config.id !== 'notas-filtradas') {
+              <div
+                echarts
+                [options]="chartOptions[i]"
+                [initOpts]="getChartInitOpts()"
+                [autoResize]="view"
+                class="w-full h-64 sm:h-80"
+              ></div>
+            }
+            
+            <!-- Para notas-filtradas (solo con filtros completos) -->
+            @if (config.id === 'notas-filtradas' && getFilterValue(config.id, 'curso') && getFilterValue(config.id, 'profesor')) {
+              <div
+                echarts
+                [options]="chartOptions[i]"
+                [initOpts]="getChartInitOpts()"
+                [autoResize]="view"
+                class="w-full h-64 sm:h-80"
+              ></div>
+            }
           }
           
-          <!-- Mensaje placeholder solo para charts filtrables sin filtros completos -->
-          @if (config.type === 'filtrable' && (!getFilterValue(config.id, 'curso') || !getFilterValue(config.id, 'profesor'))) {
+          <!-- Mensaje placeholder solo para notas-filtradas sin filtros completos -->
+          @if (config.type === 'filtrable' && config.id === 'notas-filtradas' && (!getFilterValue(config.id, 'curso') || !getFilterValue(config.id, 'profesor'))) {
             <div class="flex-1 flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-8">
               <div class="text-center">
                 <span class="material-icons text-gray-400 text-4xl mb-3">school</span>

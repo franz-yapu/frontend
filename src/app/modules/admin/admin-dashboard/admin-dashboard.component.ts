@@ -10,6 +10,7 @@ import { ECharts } from 'echarts';
 import { FormsModule } from '@angular/forms';
 
 interface FilterState {
+  nivel?: string;
   curso?: string;
   materia?: string;
   profesor?: string;
@@ -63,7 +64,7 @@ export class AdminDashboardComponent implements OnInit {
   loadDashboard() {
     if (this.isBrowser) {
       this.adminService.getDashboard().then(async(res: any) => {
-        console.log(res);
+        console.log('Datos del dashboard:', res);
         
         this.chartConfigs = await res.map((cfg: any) => {
           if (cfg.id === 'performance' && cfg.options.series[0].colors) {
@@ -74,11 +75,19 @@ export class AdminDashboardComponent implements OnInit {
           
           // Inicializar filtros para charts filtrables
           if (cfg.type === 'filtrable') {
-            this.selectedFilters[cfg.id] = {
-              curso: '', // Inicialmente vacío para forzar selección
-              materia: '',
-              profesor: '' // Inicialmente vacío para forzar selección
-            };
+            if (cfg.id === 'notas-filtradas') {
+              // Para notas-filtradas: curso y profesor obligatorios
+              this.selectedFilters[cfg.id] = {
+                curso: '',
+                materia: '',
+                profesor: ''
+              };
+            } else {
+              // Para otros charts: solo nivel
+              this.selectedFilters[cfg.id] = {
+                nivel: ''
+              };
+            }
           }
           
           return cfg;
@@ -103,22 +112,32 @@ export class AdminDashboardComponent implements OnInit {
       this.selectedFilters[chartId] = {};
     }
     
-    // Si se cambia el curso, limpiar profesor y materia
-    if (filterType === 'curso' && value !== this.selectedFilters[chartId].curso) {
-      this.selectedFilters[chartId].profesor = '';
-      this.selectedFilters[chartId].materia = '';
+    // Lógica específica para notas-filtradas
+    if (chartId === 'notas-filtradas') {
+      if (filterType === 'curso' && value !== this.selectedFilters[chartId].curso) {
+        // Si cambia el curso, limpiar profesor y materia
+        this.selectedFilters[chartId].profesor = '';
+        this.selectedFilters[chartId].materia = '';
+      }
+    } 
+    // Lógica para otros charts (solo nivel)
+    else {
+      if (filterType === 'nivel') {
+        // Solo actualizar nivel para charts de nivel
+        this.selectedFilters[chartId].nivel = value;
+      }
     }
     
     this.selectedFilters[chartId][filterType] = value;
     
-    // Solo aplicar filtro si ambos campos obligatorios están llenos
-    if (this.getFilterValue(chartId, 'curso') && this.getFilterValue(chartId, 'profesor')) {
-      this.applyFilter(chartId);
-    }
+    // Aplicar filtro automáticamente
+    this.applyFilter(chartId);
   }
 
-  // Obtener materias filtradas por curso y profesor
+  // Obtener materias filtradas por curso y profesor (solo para notas-filtradas)
   getFilteredMaterias(chartId: string): string[] {
+    if (chartId !== 'notas-filtradas') return [];
+    
     const config = this.chartConfigs.find(cfg => cfg.id === chartId);
     if (!config || !config.data) return [];
     
@@ -138,8 +157,10 @@ export class AdminDashboardComponent implements OnInit {
     return Array.from(materiasUnicas).sort();
   }
 
-  // Obtener profesores filtrados por curso
+  // Obtener profesores filtrados por curso (solo para notas-filtradas)
   getFilteredProfesores(chartId: string): string[] {
+    if (chartId !== 'notas-filtradas') return [];
+    
     const config = this.chartConfigs.find(cfg => cfg.id === chartId);
     if (!config || !config.data) return [];
     
@@ -157,41 +178,76 @@ export class AdminDashboardComponent implements OnInit {
     return Array.from(profesoresUnicos).sort();
   }
 
-  // Aplicar filtros a un chart específico (solo si hay curso y profesor seleccionado)
+  // Aplicar filtros a un chart específico
   applyFilter(chartId: string) {
+    const config = this.chartConfigs.find(cfg => cfg.id === chartId);
+    const filters = this.selectedFilters[chartId];
+    
+    if (!config || !filters) return;
+
+    // Para charts de nivel (faltas-curso, comportamiento-curso)
+    if (chartId !== 'notas-filtradas') {
+      this.applyLevelFilter(chartId);
+    } 
+    // Para notas-filtradas (requiere curso y profesor)
+    else if (filters.curso && filters.profesor) {
+      this.applyNotasFilter(chartId);
+    }
+  }
+
+  // Aplicar filtro para charts de nivel
+  applyLevelFilter(chartId: string) {
+    const config = this.chartConfigs.find(cfg => cfg.id === chartId);
+    const filters = this.selectedFilters[chartId];
+    
+    if (!config || !config.data) return;
+
+    const filteredData = config.data.filter((item: any) => {
+      // Si hay filtro de nivel, aplicar
+      if (filters.nivel && item.level !== filters.nivel) {
+        return false;
+      }
+      return true;
+    });
+
+    this.updateLevelChartWithFilteredData(chartId, filteredData);
+  }
+
+  // Aplicar filtro para notas-filtradas
+  applyNotasFilter(chartId: string) {
     const config = this.chartConfigs.find(cfg => cfg.id === chartId);
     const filters = this.selectedFilters[chartId];
     
     if (!config || !filters || !filters.curso || !filters.profesor) return;
 
-    // Filtrar los datos según los filtros seleccionados
+    console.log('Aplicando filtros a notas-filtradas:', filters);
+
     const filteredData = config.data.filter((item: any) => {
-      let match = true;
-      
-      // Curso es obligatorio, siempre debe coincidir
+      // Curso es obligatorio
       if (filters.curso && item.curso !== filters.curso) {
-        match = false;
+        return false;
       }
       
-      // Profesor es obligatorio, siempre debe coincidir
+      // Profesor es obligatorio
       if (filters.profesor && item.profesor !== filters.profesor) {
-        match = false;
+        return false;
       }
       
       // Materia es opcional
       if (filters.materia && item.materia !== filters.materia) {
-        match = false;
+        return false;
       }
       
-      return match;
+      return true;
     });
 
-    // Actualizar el chart con los datos filtrados
-    this.updateChartWithFilteredData(chartId, filteredData);
+    console.log('Datos filtrados para notas-filtradas:', filteredData);
+
+    this.updateNotasChartWithFilteredData(chartId, filteredData);
   }
 
-  // Actualizar el chart con datos filtrados
-  updateChartWithFilteredData(chartId: string, filteredData: any[]) {
+  // Actualizar chart de nivel con datos filtrados
+  updateLevelChartWithFilteredData(chartId: string, filteredData: any[]) {
     const configIndex = this.chartConfigs.findIndex(cfg => cfg.id === chartId);
     if (configIndex === -1) return;
 
@@ -204,18 +260,11 @@ export class AdminDashboardComponent implements OnInit {
         ...originalConfig.options,
         xAxis: {
           ...originalConfig.options.xAxis,
-          data: filteredData.map(item => `${item.materia}`) // Solo materia ahora
+          data: filteredData.map(item => item.curso)
         },
-        series: originalConfig.options.series.map((series: any, index: number) => ({
+        series: originalConfig.options.series.map((series: any) => ({
           ...series,
-          data: filteredData.map(item => {
-            if (series.name === 'Promedio General') {
-              return item.promedioGeneral;
-            } else if (series.name === 'Promedio por Estudiante') {
-              return item.promedioEstudiantes;
-            }
-            return 0;
-          })
+          data: this.getSeriesDataForLevelChart(series.name, filteredData)
         }))
       }
     };
@@ -227,20 +276,96 @@ export class AdminDashboardComponent implements OnInit {
     this.chartOptions = [...this.chartOptions];
   }
 
+  // Obtener datos de series para charts de nivel
+  getSeriesDataForLevelChart(seriesName: string, data: any[]): any[] {
+    if (seriesName === 'Faltas') {
+      return data.map(item => item.faltas);
+    } else if (seriesName === 'Atrasos') {
+      return data.map(item => item.atrasos);
+    } else if (seriesName === 'Incidente Grave') {
+      return data.map(item => item.incidentes);
+    } else if (seriesName === 'Aviso') {
+      return data.map(item => item.avisos);
+    } else if (seriesName === 'Reconocimiento') {
+      return data.map(item => item.reconocimientos);
+    } else if (seriesName === 'Promedio') {
+      return data.map(item => item.promedio);
+    }
+    return [];
+  }
+
+  // Actualizar chart de notas con datos filtrados
+  updateNotasChartWithFilteredData(chartId: string, filteredData: any[]) {
+    const configIndex = this.chartConfigs.findIndex(cfg => cfg.id === chartId);
+    if (configIndex === -1) return;
+
+    const originalConfig = this.chartConfigs[configIndex];
+    
+    // Si no hay datos filtrados, mostrar chart vacío
+    if (filteredData.length === 0) {
+      const emptyConfig = {
+        ...originalConfig,
+        options: {
+          ...originalConfig.options,
+          xAxis: {
+            ...originalConfig.options.xAxis,
+            data: []
+          },
+          series: originalConfig.options.series.map((series: any) => ({
+            ...series,
+            data: []
+          }))
+        }
+      };
+
+      this.chartOptions[configIndex] = emptyConfig.options;
+    } else {
+      // Crear nueva configuración con datos filtrados
+      const filteredConfig = {
+        ...originalConfig,
+        options: {
+          ...originalConfig.options,
+          xAxis: {
+            ...originalConfig.options.xAxis,
+            data: filteredData.map(item => `${item.curso}\n${item.materia}`)
+          },
+          series: originalConfig.options.series.map((series: any) => ({
+            ...series,
+            data: filteredData.map(item => {
+              if (series.name === 'Promedio General') {
+                return item.promedioGeneral;
+              }
+              return 0;
+            })
+          }))
+        }
+      };
+
+      this.chartOptions[configIndex] = filteredConfig.options;
+    }
+    
+    // Forzar actualización del chart
+    this.chartOptions = [...this.chartOptions];
+  }
+
   // Limpiar filtros
   clearFilters(chartId: string) {
     if (this.selectedFilters[chartId]) {
-      this.selectedFilters[chartId] = {
-        curso: '',
-        materia: '',
-        profesor: ''
-      };
+      if (chartId === 'notas-filtradas') {
+        this.selectedFilters[chartId] = {
+          curso: '',
+          materia: '',
+          profesor: ''
+        };
+      } else {
+        this.selectedFilters[chartId] = {
+          nivel: ''
+        };
+      }
+      
+      // Recargar chart original
+      this.applyFilter(chartId);
     }
-  }
-
-  // Verificar si un chart tiene todos los filtros obligatorios seleccionados
-  hasRequiredFilters(chartId: string): boolean {
-    return !!this.getFilterValue(chartId, 'curso') && !!this.getFilterValue(chartId, 'profesor');
   }
 
   getChartInitOpts() {
