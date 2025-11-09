@@ -32,6 +32,8 @@ export class AdminComponent {
         console.log(res);
         
         if (res.data.length > 0) {
+          console.log(res.data);
+          
           this.navItems = [
             {
               path: 'dashboard-teacher',

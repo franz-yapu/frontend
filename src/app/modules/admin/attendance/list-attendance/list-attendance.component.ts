@@ -115,6 +115,8 @@ export class ListAttendanceComponent implements OnInit {
 
   async loadStudents() {
   const res: any = await this.service.getStudentsCouses(this.courseId);
+  console.log(res);
+  
   this.students = (res.data[0]?.students || []).sort((a: any, b: any) => {
     const lastA = a.lastName?.toLowerCase() || '';
     const lastB = b.lastName?.toLowerCase() || '';
@@ -127,6 +129,8 @@ export class ListAttendanceComponent implements OnInit {
   });
 
   const data: any = await this.service.getAttendance(this.courseId);
+  console.log(data);
+  
   this.processAttendanceData(data.data);
   this.initializeAttendanceRecords();
 }

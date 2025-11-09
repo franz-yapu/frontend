@@ -19,7 +19,8 @@ export class HomeService {
       const include =  {"student":true,}
       const params = new HttpParams()
       .set('where', JSON.stringify(where))
-      .set('include', JSON.stringify(include));
+      .set('include', JSON.stringify(include))
+       .set('perPage', JSON.stringify(1000))
       return firstValueFrom(this.http.get(`${environment.backend}/dynamic/user/all/paginate`, { params }));
     }
 
@@ -29,7 +30,8 @@ export class HomeService {
     const include =  {"attendances":true,"behaviors":true,"record":true}
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
-      .set('include', JSON.stringify(include));
+      .set('include', JSON.stringify(include))
+       .set('perPage', JSON.stringify(1000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Student/all/paginate`, { params }));
   }
 
@@ -38,7 +40,8 @@ export class HomeService {
     const include =  {"attendances":true}
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
-      .set('include', JSON.stringify(include));
+      .set('include', JSON.stringify(include)) 
+      .set('perPage', JSON.stringify(1000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Student/all/paginate`, { params }));
   }
 
@@ -47,7 +50,8 @@ export class HomeService {
     const include =  {"behaviors":true}
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
-      .set('include', JSON.stringify(include));
+      .set('include', JSON.stringify(include))
+       .set('perPage', JSON.stringify(1000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Student/all/paginate`, { params }));
   }
 
@@ -73,6 +77,7 @@ export class HomeService {
     const where = {"notes":id_couse};
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
+       .set('perPage', JSON.stringify(1000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Attendance/all/paginate`, { params }));
   }
 
@@ -83,7 +88,8 @@ export class HomeService {
     const include =  {"behaviors":true}
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
-      .set('include', JSON.stringify(include));
+      .set('include', JSON.stringify(include)) 
+      .set('perPage', JSON.stringify(1000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Student/all/paginate`, { params }));
   }
 
@@ -96,7 +102,8 @@ export class HomeService {
     const include =  {"behaviors":true}
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
-      .set('include', JSON.stringify(include));
+      .set('include', JSON.stringify(include))
+       .set('perPage', JSON.stringify(1000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Student/all/paginate`, { params }));
   }
  // record academic
@@ -105,7 +112,8 @@ export class HomeService {
     const include =  {"record":true}
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
-      .set('include', JSON.stringify(include));
+      .set('include', JSON.stringify(include))
+       .set('perPage', JSON.stringify(1000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Student/all/paginate`, { params }));
   }
 

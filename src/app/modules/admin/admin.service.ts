@@ -41,19 +41,26 @@ export class AdminService {
   getUserTeacher() {
     const where = {roleId:{contains:"30a3f3c0-c20e-4673-a4fc-80614cda35d2"}};
     const params = new HttpParams()
-      .set('where', JSON.stringify(where));
+      .set('where', JSON.stringify(where))
+       .set('perPage', JSON.stringify(1000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/user/all/paginate`, { params }));
   }
 
 /* Couse Service */
-   getUserCourse() {
-    const include = {"students":true , "user":true };
-    const params = new HttpParams()
-      .set('include', JSON.stringify(include))
-      .set('perPage', JSON.stringify(1000))
+ getUserCourse(page: number = 1, perPage: number = 6, searchTerm: string = '') {
+  const include = {"students": true, "user": true};
+  let params = new HttpParams()
+    .set('include', JSON.stringify(include))
+    .set('page', page.toString())
+    .set('perPage', perPage.toString());
 
-    return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Grade/all/paginate`, { params }));
+  // Si hay término de búsqueda, lo agregamos
+  if (searchTerm) {
+    params = params.set('search', searchTerm);
   }
+
+  return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Grade/all/paginate`, { params }));
+}
    createCourse(data: any) {
     return firstValueFrom(this.http.post(`${environment.backend}/dynamic/Grade`, data));
   }
@@ -72,7 +79,8 @@ export class AdminService {
     const include =  {"students":true}
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
-      .set('include', JSON.stringify(include));
+      .set('include', JSON.stringify(include))
+       .set('perPage', JSON.stringify(1000));
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Grade/all/paginate`, { params }));
   }
 
@@ -99,6 +107,7 @@ export class AdminService {
     const where = {"notes":id_couse};
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
+       .set('perPage', JSON.stringify(10000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Attendance/all/paginate`, { params }));
   }
 
@@ -109,7 +118,8 @@ export class AdminService {
     const include =  {"behaviors":true}
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
-      .set('include', JSON.stringify(include));
+      .set('include', JSON.stringify(include))
+       .set('perPage', JSON.stringify(1000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Student/all/paginate`, { params }));
   }
 
@@ -122,7 +132,8 @@ export class AdminService {
     const include =  {"behaviors":true}
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
-      .set('include', JSON.stringify(include));
+      .set('include', JSON.stringify(include))
+       .set('perPage', JSON.stringify(1000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Student/all/paginate`, { params }));
   }
  // record academic
@@ -131,7 +142,8 @@ export class AdminService {
     const include =  {"record":true}
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
-      .set('include', JSON.stringify(include));
+      .set('include', JSON.stringify(include))
+       .set('perPage', JSON.stringify(1000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Student/all/paginate`, { params }));
   }
 
@@ -148,12 +160,13 @@ export class AdminService {
     const where = {mainTeacherId:{equals:mainTeacherId}}
     const params = new HttpParams()
       .set('where', JSON.stringify(where))
+       .set('perPage', JSON.stringify(1000))
     return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Grade/all/paginate`, { params }));
   }
 
   getSubjects() {
   const params = new HttpParams()
-    .set('perPage', '100');
+    .set('perPage', JSON.stringify(1000))
   return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Subject/all/paginate`, { params }));
 }
 
@@ -167,6 +180,7 @@ getStudentById(studentId: string) {
   
     .set('include', JSON.stringify(include))
    .set('where', JSON.stringify(where))
+    .set('perPage', JSON.stringify(1000))
   return firstValueFrom(this.http.get(`${environment.backend}/dynamic/Student/all/paginate`, { params }));
 }
 
