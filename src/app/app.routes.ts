@@ -21,12 +21,7 @@ export const routes: Routes = [
         canActivate: [authGuard] ,
         title: 'home'
     },
-     {
-        path: 'cliente',
-        loadChildren: () => import('./modules/clientes/cliente.routes').then(m => m.routes),
-        canActivate: [authGuard] ,
-        title: 'clientes'
-    },
+
      {
         path: 'home-clientes',
         loadChildren: () => import('./modules/lobby/lobby.routes').then(m => m.routes),
