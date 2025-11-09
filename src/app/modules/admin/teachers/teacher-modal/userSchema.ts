@@ -143,49 +143,7 @@ export const userFormFields=(catalogs: any)=> {
               ],
               
             },
-            {
-              fields: [
-                
-                {
-                  key: 'username',
-                  label: 'usuario',
-                  type: 'text',
-                  validators: { required: true, maxLength: 100, minLength: 0 },
-                },
-                 {
-                  key: 'roleId',
-                  label: 'Rol',
-                  type: 'select',
-                  options: catalogs['roles'],
-                  validators: { required: true },
-                },{
-                  key: 'subRole',
-                  label: 'Especialidad',
-                  type: 'select',
-                  options: catalogs['subRole'],
-                   validators: { required: true },
-                  showOn : {
-                        satisfy:'ALL',
-                        rules:[
-                         { property: 'roleId',
-                          op: 'eq',
-                          value : '30a3f3c0-c20e-4673-a4fc-80614cda35d2'
-                         }
-                        ]
-                  }
-                },
-                 {
-                  key: 'email',
-                  label: 'Correo electronico',
-                  type: 'email',
-                    validators: { required: true },
-                },
-                
-                
-                
-              ],
-              
-            },
+
             
         
           ]

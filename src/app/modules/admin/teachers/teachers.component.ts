@@ -7,6 +7,7 @@ import { AdminService } from '../admin.service';
 import { TeacherModalComponent } from './teacher-modal/teacher-modal.component';
 import { ConfirmationDialogComponent } from '../../../project/components/confirmation-modal/confirmation-modal.component';
 import { ToasterService } from '../../../project/services/toaster.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-teachers',
@@ -41,7 +42,8 @@ export class TeachersComponent {
     private adminService: AdminService,
     private dialogService: DialogService,
     private generalService: GeneralService,
-    private toaster: ToasterService
+    private toaster: ToasterService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -295,6 +297,6 @@ export class TeachersComponent {
     return Math;
   }
     viewUserDetail(user: any) {
-    /* this.router.navigate(['/admin/users', user.id]); */
+    this.router.navigate(['/admin/teacher/users', user.id]);
   }
 }

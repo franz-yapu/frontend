@@ -15,6 +15,7 @@ import { AboutSchoolComponent } from './about-school/about-school.component';
 import { RecordListComponent } from './record-academic/record-list/record-list.component';
 import { StudentRecordComponent } from './record-academic/student-record/student-record.component';
 import { AttendanceHistoryComponent } from './attendance/attendance-history/attendance-history.component';
+import { UserDetailComponent } from './teachers/user-detail/user-detail.component';
 
 
 
@@ -96,6 +97,11 @@ export const routes: Routes = [
      path: 'record/:courseId/student/:studentId',
      component: StudentRecordComponent
      },
+
+      {
+        path: 'teacher/users/:id',
+        component: UserDetailComponent
+      },
       {
         path: 'about',
         component: AboutSchoolComponent
